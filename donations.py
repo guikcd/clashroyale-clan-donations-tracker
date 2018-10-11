@@ -7,7 +7,6 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
-INFLUXDB_HOST = 'influxdb'
 INFLUXDB_PORT = 8086
 INFLUXDB_LOGIN = 'root'
 INFLUXDB_PASSWORD = 'root'
@@ -16,6 +15,10 @@ CLAN_TAG = "%23CP28G8V"
 
 CURRENT_TIME = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 MEASUREMENT = "donations"
+
+if 'INFLUXDB_HOST' not in os.environ:
+    logging.error("Please set INFLUXDB_HOST")
+    exit(1)
 
 if 'CR_API_TOKEN' not in os.environ:
     logging.error("Please set CR_API_TOKEN")
@@ -31,8 +34,8 @@ while 1:
     
     if request.status_code == 200:
     
-        logging.info('Connecting to {}:{}/{}'.format(INFLUXDB_HOST, INFLUXDB_PORT, INFLUXDB_DATABASE))
-        client = InfluxDBClient(INFLUXDB_HOST, INFLUXDB_PORT, INFLUXDB_LOGIN, INFLUXDB_PASSWORD, INFLUXDB_DATABASE)
+        logging.info('Connecting to {}:{}/{}'.format(os.environ['INFLUXDB_HOST'], INFLUXDB_PORT, INFLUXDB_DATABASE))
+        client = InfluxDBClient(os.environ['INFLUXDB_HOST'], INFLUXDB_PORT, INFLUXDB_LOGIN, INFLUXDB_PASSWORD, INFLUXDB_DATABASE)
 
         jsons = []
         for player in request.json()['items']:
