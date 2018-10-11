@@ -11,9 +11,8 @@ INFLUXDB_PORT = 8086
 INFLUXDB_LOGIN = 'root'
 INFLUXDB_PASSWORD = 'root'
 INFLUXDB_DATABASE = 'clashroyale_stats'
-CLAN_TAG = "%23CP28G8V"
+CLAN_TAG = "CP28G8V"
 
-CURRENT_TIME = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 MEASUREMENT = "donations"
 
 if 'INFLUXDB_HOST' not in os.environ:
@@ -30,7 +29,7 @@ while 1:
             "Accept": "application/json",
             "Authorization": "Bearer {}".format(os.environ['CR_API_TOKEN']),
             }
-    request = requests.get('https://api.clashroyale.com/v1/clans/{}/members'.format(CLAN_TAG), headers=headers)
+    request = requests.get('https://api.clashroyale.com/v1/clans/%23{}/members'.format(CLAN_TAG), headers=headers)
     
     if request.status_code == 200:
     
@@ -38,15 +37,16 @@ while 1:
         client = InfluxDBClient(os.environ['INFLUXDB_HOST'], INFLUXDB_PORT, INFLUXDB_LOGIN, INFLUXDB_PASSWORD, INFLUXDB_DATABASE)
 
         jsons = []
+        current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         for player in request.json()['items']:
-            #print player['name']
+            logging.debug("Generate {}".format(player['name']))
             json_body = {
                 "measurement": MEASUREMENT,
                 "tags": {
                    "player_name": player['name'],
                    "player_tag": player['tag']
                 },
-                "time": CURRENT_TIME,
+                "time": current_time,
                 "fields": {
                     "donations": int(player['donations']),
                     "donationsReceived": int(player['donationsReceived'])
@@ -54,7 +54,6 @@ while 1:
             }
             jsons.append(json_body)
     
-        #logging.info(jsons)
         logging.info("Writing data to influxdb ({} records)".format(len(jsons)))
         client.write_points(jsons)
 
