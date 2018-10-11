@@ -39,7 +39,6 @@ while 1:
         jsons = []
         current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         for player in request.json()['items']:
-            logging.debug("Generate {}".format(player['name']))
             json_body = {
                 "measurement": MEASUREMENT,
                 "tags": {
