@@ -1,4 +1,5 @@
 import requests
+import os
 from time import sleep
 from influxdb import InfluxDBClient
 from datetime import datetime
@@ -13,17 +14,18 @@ INFLUXDB_PASSWORD = 'root'
 INFLUXDB_DATABASE = 'clashroyale_stats'
 CLAN_TAG = "%23CP28G8V"
 
-API_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImQ4MjFiMDE1LTkzNWItNGJmOC1hYmIyLWJjYTU0MjI5MzgwMSIsImlhdCI6MTUzOTEyMTI5Mywic3ViIjoiZGV2ZWxvcGVyLzMyNzNhOWU5LTVhYTMtMjhlMS1kNzlhLTRjNjk4MjhlNjgyMCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIyMTcuMTc0LjIwOS4xMTUiXSwidHlwZSI6ImNsaWVudCJ9XX0.1SYG4t1zV2KxhOBiSKKIWVYT8cEXv1uA4fiDtt--tzeMCpGRqBorMIaUd89lXeKE9CLdabv6eEBcdl-rtAFSQA"
-#API_TOKEN = "aaa"
-
 CURRENT_TIME = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 MEASUREMENT = "donations"
+
+if 'CR_API_TOKEN' not in os.environ:
+    logging.error("Please set CR_API_TOKEN")
+    exit(1)
 
 while 1:
     logging.info('Get players clan stats for CR api')
     headers = {
             "Accept": "application/json",
-            "Authorization": "Bearer {}".format(API_TOKEN),
+            "Authorization": "Bearer {}".format(os.environ['CR_API_TOKEN']),
             }
     request = requests.get('https://api.clashroyale.com/v1/clans/{}/members'.format(CLAN_TAG), headers=headers)
     

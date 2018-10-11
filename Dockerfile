@@ -5,6 +5,6 @@ RUN pip install --requirement /srv/requirements.txt
 
 COPY donations.py /srv/
 
-WORKDIR /src
+WORKDIR /srv
 
 CMD python /srv/donations.py
