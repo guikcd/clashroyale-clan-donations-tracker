@@ -42,7 +42,7 @@ while 1:
             json_body = {
                 "measurement": MEASUREMENT,
                 "tags": {
-                   "player_name": player['name'],
+                   "player_name": player['name'].replace(' ', '_'),
                    "player_tag": player['tag']
                 },
                 "time": current_time,
