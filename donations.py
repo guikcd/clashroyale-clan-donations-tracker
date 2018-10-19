@@ -7,21 +7,18 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
-INFLUXDB_PORT = 8086
-INFLUXDB_LOGIN = 'root'
-INFLUXDB_PASSWORD = 'root'
-INFLUXDB_DATABASE = 'clashroyale_stats'
-CLAN_TAG = "CP28G8V"
+ENV_VARS = ['INFLUXDB_HOST', 'INFLUXDB_PORT', 'INFLUXDB_LOGIN', 'INFLUXDB_PASSWORD', 'INFLUXDB_DATABASE', 'CR_API_TOKEN', 'CLAN_TAG']
+
+def _required_vars():
+    for var in ENV_VARS:
+        if var not in os.environ:
+           logging.error("Please set {}".format(var))
+           exit(1)
 
 MEASUREMENT = "donations"
+SLEEP_SECONDS = 300
 
-if 'INFLUXDB_HOST' not in os.environ:
-    logging.error("Please set INFLUXDB_HOST")
-    exit(1)
-
-if 'CR_API_TOKEN' not in os.environ:
-    logging.error("Please set CR_API_TOKEN")
-    exit(1)
+_required_vars()
 
 while 1:
     logging.info('Get players clan stats for CR api')
@@ -29,12 +26,12 @@ while 1:
             "Accept": "application/json",
             "Authorization": "Bearer {}".format(os.environ['CR_API_TOKEN']),
             }
-    request = requests.get('https://api.clashroyale.com/v1/clans/%23{}/members'.format(CLAN_TAG), headers=headers)
+    request = requests.get('https://api.clashroyale.com/v1/clans/%23{}/members'.format(os.environ['CLAN_TAG']), headers=headers)
     
     if request.status_code == 200:
     
-        logging.info('Connecting to {}:{}/{}'.format(os.environ['INFLUXDB_HOST'], INFLUXDB_PORT, INFLUXDB_DATABASE))
-        client = InfluxDBClient(os.environ['INFLUXDB_HOST'], INFLUXDB_PORT, INFLUXDB_LOGIN, INFLUXDB_PASSWORD, INFLUXDB_DATABASE)
+        logging.info('Connecting to {}:{}/{}'.format(os.environ['INFLUXDB_HOST'], os.environ['INFLUXDB_PORT'], os.environ['INFLUXDB_DATABASE']))
+        client = InfluxDBClient(os.environ['INFLUXDB_HOST'], os.environ['INFLUXDB_PORT'], os.environ['INFLUXDB_LOGIN'], os.environ['INFLUXDB_PASSWORD'], os.environ['INFLUXDB_DATABASE'])
 
         jsons = []
         current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -58,14 +55,11 @@ while 1:
 
         logging.info("Closing influxdb connection")
         client.close()
-
-        logging.info("Waiting 300s")
-        sleep(300)
     
     else:
         logging.error(request.text)
-
-        logging.info("Waiting 300s")
-        sleep(300)
-
         exit(1)
+
+    logging.info("Waiting {}s".format(SLEEP_SECONDS))
+    sleep(SLEEP_SECONDS)
+
